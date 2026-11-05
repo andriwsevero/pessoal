@@ -8,6 +8,8 @@ Tópicos atuais (prefixo no nome do subagente indica o domínio):
 
 Nunca misture contexto de um tópico com outro numa mesma resposta — se o pedido for de trabalho, use só subagentes `trabalho-*`; se for pessoal, só `pessoal-*`.
 
+Repositórios de código da empresa ficam clonados FORA deste projeto, em `C:\Users\andriwsevero\work-repos\` (nunca neste repositório git, que é público) — subagentes `trabalho-*` que precisam ler código usam esse caminho absoluto.
+
 ## Princípios de eficiência (importante)
 
 - Prefira o menor modelo que resolve a tarefa no campo `model` de cada subagente (`haiku` para tarefas mecânicas/simples, só suba pra `sonnet`/`inherit` se precisar de raciocínio mais pesado).
