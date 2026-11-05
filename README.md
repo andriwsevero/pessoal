@@ -1,56 +1,54 @@
 # agent-network
 
-Rede de agentes e subagentes construída com o [Claude Agent SDK](https://docs.claude.com/en/docs/agent-sdk) (Python), separada em dois domínios independentes — `work` (trabalho) e `personal` (pessoal) — que compartilham a mesma infraestrutura base em `core/`.
+Rede de agentes e subagentes do Claude Code, separada em dois domínios **completamente isolados** — `work/` (trabalho) e `personal/` (pessoal) — cada um é seu próprio projeto Claude Code, com seu próprio `CLAUDE.md` e seus próprios subagentes em `.claude/agents/`.
 
-Cada domínio tem seu próprio orquestrador: ele recebe um pedido e delega para o subagente especializado mais adequado via tool `Agent`. Os domínios não compartilham sessão, contexto nem permissões entre si.
+Roda inteiramente dentro da sua assinatura Claude Pro/Max (login via `claude login`), sem precisar de API key separada nem custo por uso — porque usa os subagentes nativos do Claude Code, não o Agent SDK.
 
-## Setup
+## Como usar
 
-```powershell
-py -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-
-copy .env.example .env
-# edite .env e cole sua ANTHROPIC_API_KEY (https://console.anthropic.com/settings/keys)
-```
-
-## Rodando
+Abra um terminal dentro do domínio que quiser:
 
 ```powershell
-python -m agents.work.main
-python -m agents.personal.main
-
-# ou com um pedido customizado:
-python -m agents.work.main "Use o agente note-summarizer para resumir: ..."
+cd work
+claude
 ```
 
-Cada execução imprime a resposta do subagente, uma linha confirmando a delegação (`-> delegado ao subagente: ...`) e o custo da chamada.
+ou
+
+```powershell
+cd personal
+claude
+```
+
+Dentro da sessão, peça algo que combine com a `description` de um subagente — o Claude delega automaticamente — ou mencione o agente explicitamente: `"Use o agente note-summarizer para resumir: ..."`.
 
 ## Estrutura
 
 ```
-core/              # infraestrutura compartilhada pelos dois domínios
-  config.py        # carrega .env e valida ANTHROPIC_API_KEY
-  orchestrator.py  # fábrica de ClaudeAgentOptions
-  runner.py        # executa query() e imprime resultado
-  tools.py         # tools customizadas compartilhadas (MCP in-process)
-agents/
-  work/            # domínio de trabalho: orquestrador + subagentes
-  personal/        # domínio pessoal: orquestrador + subagentes
+work/
+  CLAUDE.md               # contexto/instruções do domínio de trabalho
+  .claude/agents/
+    note-summarizer.md    # subagente de exemplo
+personal/
+  CLAUDE.md               # contexto/instruções do domínio pessoal
+  .claude/agents/
+    journal-summarizer.md # subagente de exemplo
 ```
+
+Como cada domínio é uma pasta de projeto separada, o Claude Code descobre e carrega **apenas** os subagentes e o `CLAUDE.md` daquela pasta — não há vazamento de contexto entre trabalho e pessoal.
 
 ## Como adicionar um novo agente
 
-1. Escolha o domínio (`work` ou `personal`), ou crie um novo domínio seguindo o mesmo padrão de pasta (um `main.py` + um `subagents.py`).
-2. Adicione uma entrada no dict `*_AGENTS` daquele domínio (`agents/<domínio>/subagents.py`) com:
-   - `description`: frase clara do que o agente faz e quando usá-lo — é isso que o orquestrador usa para decidir a quem delegar.
-   - `prompt`: instruções especializadas do subagente.
-   - `tools` / `model`: opcional, restrinja conforme necessário.
-3. Se o agente precisar de uma tool nova, defina-a em `core/tools.py` (ou um arquivo de tools próprio do domínio) com `@tool(...)` e registre-a em `create_sdk_mcp_server(...)`, depois inclua o server no dict `mcp_servers` passado a `build_domain_options`.
-4. Teste mencionando o agente explicitamente no prompt (ex: `"Use o agente <nome> para ..."`) para confirmar que a delegação funciona antes de confiar no roteamento automático por `description`.
+1. Escolha o domínio (`work/` ou `personal/`), ou crie um novo domínio seguindo o mesmo padrão de pasta (`<domínio>/CLAUDE.md` + `<domínio>/.claude/agents/`).
+2. Crie `<domínio>/.claude/agents/<nome>.md` com frontmatter:
+   ```yaml
+   ---
+   name: nome-do-agente
+   description: Frase clara do que faz e QUANDO usar — é isso que decide a delegação automática.
+   model: haiku   # ou sonnet/opus/inherit
+   ---
+   Prompt/instruções do subagente.
+   ```
+3. Teste mencionando o agente explicitamente no pedido antes de confiar no roteamento automático por `description`.
 
-## Segurança
-
-Nunca comite o arquivo `.env` — ele já está no `.gitignore`. Use sempre `.env.example` como referência de quais variáveis são necessárias.
+Documentação oficial de subagentes: https://code.claude.com/docs/en/sub-agents
