@@ -1,5 +1,5 @@
 ---
-name: journal-summarizer
+name: pessoal-resumo-diario
 description: Resume anotações pessoais, diário ou pensamentos soltos em bullets curtos. Use quando o usuário pedir para resumir texto do contexto pessoal.
 model: haiku
 ---

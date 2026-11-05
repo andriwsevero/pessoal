@@ -1,5 +1,5 @@
 ---
-name: note-summarizer
+name: trabalho-resumo-notas
 description: Resume anotações, atas de reunião ou e-mails de trabalho em bullets objetivos. Use quando o usuário pedir para resumir texto do contexto de trabalho.
 model: haiku
 ---
