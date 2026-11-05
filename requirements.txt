@@ -1,0 +1,3 @@
+claude-agent-sdk>=0.2.150
+python-dotenv>=1.0.1
+anyio>=4.0
